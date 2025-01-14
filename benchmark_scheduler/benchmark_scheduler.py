@@ -1,8 +1,17 @@
 import docker
 
 
-def run_container(image_name, host_dir, container_dir, script_path, packages_to_install=None, use_gpu=False):
-    """Запускает Docker-контейнер, монтирует папку, устанавливает пакеты, подключает GPU (если нужно) и выполняет Python-скрипт.
+def run_container(
+    image_name,
+    host_dir,
+    container_dir,
+    script_path,
+    packages_to_install=None,
+    use_gpu=False,
+    keep_container=False,
+):
+    """Запускает Docker-контейнер, монтирует папку, устанавливает пакеты,
+    подключает GPU (если нужно) и выполняет Python-скрипт.
     Вывод контейнера, включая tqdm, отображается в реальном времени.
 
     Args:
@@ -12,6 +21,8 @@ def run_container(image_name, host_dir, container_dir, script_path, packages_to_
         script_path (str): Путь к Python-скрипту внутри контейнера.
         packages_to_install (list): Список пакетов для установки (например, ["numpy", "pandas"]).
         use_gpu (bool): Флаг, указывающий, нужно ли подключать GPU. По умолчанию False.
+        keep_container (bool): Флаг, указывающий, нужно ли оставлять контейнер запущенным
+            после выполнения функции. По умолчанию False.
 
     Returns:
         None
@@ -41,6 +52,10 @@ def run_container(image_name, host_dir, container_dir, script_path, packages_to_
         # Если пакеты не нужно устанавливать, просто запускаем скрипт
         command = f"python -u {script_path}"
 
+    # Если keep_container=True, добавляем команду для запуска интерактивной оболочки
+    if keep_container:
+        command = f"sh -c '{command} && exec bash'"
+
     # Запуск контейнера
     container = client.containers.run(
         image_name,
@@ -61,6 +76,12 @@ def run_container(image_name, host_dir, container_dir, script_path, packages_to_
     except KeyboardInterrupt:
         print("Остановлено пользователем.")
 
-    # Остановка контейнера
-    container.remove(force=True)
-    print(f"Контейнер {container.id} удален.")
+    # Остановка контейнера, если keep_container=False
+    if not keep_container:
+        container.remove(force=True)
+        print(f"Контейнер {container.id} удален.")
+    else:
+        print(f"Контейнер {container.id} оставлен запущенным.")
+        print(
+            f"Для подключения к контейнеру выполните: docker exec -it {container.id} bash"
+        )

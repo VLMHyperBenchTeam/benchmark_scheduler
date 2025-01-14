@@ -44,17 +44,21 @@ def run_container(
     }
 
     # Формирование команды для установки пакетов и запуска скрипта
-    if packages_to_install:
-        # Если нужно установить пакеты, формируем команду для оболочки
-        install_command = f"pip install {' '.join(packages_to_install)}"
-        command = f"sh -c '{install_command} && python -u {script_path}'"
-    else:
-        # Если пакеты не нужно устанавливать, просто запускаем скрипт
-        command = f"python -u {script_path}"
+    install_cmd = (
+        f"pip install {' '.join(packages_to_install)}" if packages_to_install else ""
+    )
+    scrypt_run_cmd = f"python -u {script_path}"
+    interactive_shell_cmd = "exec bash" if keep_container else ""
+    
+    command = [install_cmd, scrypt_run_cmd, interactive_shell_cmd]
+    command = list(filter(lambda x: x != '', command))
+    command = " && ".join(command)
 
-    # Если keep_container=True, добавляем команду для запуска интерактивной оболочки
-    if keep_container:
-        command = f"sh -c '{command} && exec bash'"
+    # Объединение всех команд в одну
+    command = f"sh -c '{command}'"
+
+    # Вывод команды для отладки
+    print(command)
 
     # Запуск контейнера
     container = client.containers.run(

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "benchmark-scheduler"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["Anton Shiryaev <med.phisiker@gmail.com>"]
 readme = "README.md"
@@ -8,6 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 docker = "^7.1.0"
+pandas = "^2.2.3"
 
 
 [build-system]

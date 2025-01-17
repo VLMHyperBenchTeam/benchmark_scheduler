@@ -1,6 +1,6 @@
 import os
 
-from benchmark_scheduler.benchmark_scheduler import run_container
+from benchmark_scheduler.docker_run import run_container
 
 if __name__ == "__main__":
     # Путь к папке на хосте и путь внутри контейнера

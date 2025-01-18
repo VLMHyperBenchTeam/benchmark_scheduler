@@ -1,5 +1,8 @@
-from benchmark_scheduler.benchmark_orchestrator import host_paths_to_abs, run_container
-
+from benchmark_scheduler.benchmark_orchestrator import (
+    host_paths_to_abs,
+    load_env_vars,
+    run_container,
+)
 
 if __name__ == "__main__":
     vlm_docker_img = (
@@ -15,6 +18,7 @@ if __name__ == "__main__":
         "pipeline/wheels": "/workspace/wheels",
     }
 
+    environment = load_env_vars()
     volumes = host_paths_to_abs(volumes, current_dir=None)
 
     run_container(
@@ -23,6 +27,7 @@ if __name__ == "__main__":
         script_path="/workspace/bench_stages/run_vlm.py",
         packages_to_install=["wheels/benchmark_scheduler-0.1.0-py3-none-any.whl"],
         use_gpu=True,
+        environment=environment,
     )
 
     run_container(

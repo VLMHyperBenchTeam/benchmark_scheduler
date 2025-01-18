@@ -15,6 +15,12 @@ if __name__ == "__main__":
     print("torch.cuda.current_device()", torch.cuda.current_device())
     print("torch.cuda.device_count()", torch.cuda.current_device())
     print("torch.cuda.get_device_name(0)", torch.cuda.get_device_name(0))
+    
+    token = os.getenv("HUGGING_FACE_TOKEN")
+    if token:
+        print(f"Токен Hugging Face: {token}")
+    else:
+        print("Токен Hugging Face не найден.")
 
     with open(filename, "w") as file:
         for i in tqdm(range(10), desc="Processing", unit="iteration"):

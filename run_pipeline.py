@@ -1,28 +1,33 @@
-import os
+from benchmark_scheduler.benchmark_orchestrator import host_paths_to_abs, run_container
 
-from benchmark_scheduler.docker_run import run_container
 
 if __name__ == "__main__":
-    # Путь к папке на хосте и путь внутри контейнера
-    host_directory = os.path.join(os.getcwd(), "pipeline")
-    container_directory = "/workspace"
+    vlm_docker_img = (
+        "ghcr.io/vlmhyperbenchteam/qwen2-vl:ubuntu22.04-cu124-torch2.4.0_v0.1.0"
+    )
+    eval_docker_img = (
+        "ghcr.io/vlmhyperbenchteam/qwen2-vl:ubuntu22.04-cu124-torch2.4.0_v0.1.0"
+    )
 
-    image_name = "vlmevalkit:v0.2rc1-cu124"
+    volumes = {
+        "pipeline/data": "/workspace/data",
+        "pipeline/bench_stages": "/workspace/bench_stages",
+        "pipeline/wheels": "/workspace/wheels",
+    }
+
+    volumes = host_paths_to_abs(volumes, current_dir=None)
 
     run_container(
-        image_name,
-        host_dir=host_directory,
-        container_dir=container_directory,
-        script_path="/workspace/scripts/writer.py",
+        vlm_docker_img,
+        volumes,
+        script_path="/workspace/bench_stages/run_vlm.py",
         packages_to_install=["wheels/benchmark_scheduler-0.1.0-py3-none-any.whl"],
-        keep_container=True,
+        use_gpu=True,
     )
 
     run_container(
-        image_name,
-        host_dir=host_directory,
-        container_dir=container_directory,
-        script_path="/workspace/scripts/reader.py",
-        use_gpu=True,
+        eval_docker_img,
+        volumes,
+        script_path="/workspace/bench_stages/run_eval.py",
         packages_to_install=None,
     )

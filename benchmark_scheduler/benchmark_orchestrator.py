@@ -1,7 +1,8 @@
 import os
-from typing import Dict
+from typing import Any, Dict, List, Optional
 
 import docker
+from dotenv import load_dotenv
 
 from .benchmark_run_config import BenchmarkRunConfig
 from .user_config_reader import UserConfigReader
@@ -42,12 +43,15 @@ class BenchmarkOrchestrator:
 def host_paths_to_abs(
     volumes: Dict[str, str], current_dir: str | None = None
 ) -> Dict[str, str]:
-    """Добавляет текущую директорию ко всем ключам словаря volumes.
+    """Делает пути на хосте абсолютными в словаре volumes.
+    Это необходимо для монтирования данных каталогов к запускаемому Docker-контейнеру.
 
     Если current_dir не указан, используется текущая рабочая директория.
 
     Args:
-        volumes (Dict[str, str]): python dict, где ключи — пути на хосте, а значения — пути внутри контейнера.
+        volumes (Dict[str, str]): Словарь, осуществляет mapping директорий, которые будут примонтированы
+            к запущенному Docker-контейнеру.
+            В этом словаре: ключи — пути на хосте, а значения — пути внутри контейнера.
         current_dir (str | None, optional): Текущая директория. Если None, используется os.getcwd().
             По умолчанию None.
 
@@ -79,31 +83,54 @@ def host_paths_to_abs(
 
 
 def run_container(
-    image_name,
-    volumes,  # Словарь с путями для монтирования
-    script_path,
-    packages_to_install=None,
-    use_gpu=False,
-    keep_container=False,
-):
-    """Запускает Docker-контейнер, монтирует папки, устанавливает пакеты,
-    подключает GPU (если нужно) и выполняет Python-скрипт.
+    image_name: str,
+    volumes: Dict[str, str],
+    script_path: str,
+    packages_to_install: Optional[List[str]] = None,
+    use_gpu: bool = False,
+    keep_container: bool = False,
+    environment: Optional[Dict[str, str]] = None,
+) -> None:
+    """Запускает Docker-контейнер, монтирует папки, устанавливает пакеты, подключает GPU (если нужно)
+    и выполняет Python-скрипт с возможностью передачи переменных окружения.
+
     Вывод контейнера, включая tqdm, отображается в реальном времени.
 
     Args:
         image_name (str): Имя Docker-образа.
-        volumes (dict): Словарь, где ключи — пути на хосте, а значения — пути внутри контейнера.
-        script_path (str): Путь к Python-скрипту внутри контейнера.
-        packages_to_install (list): Список пакетов для установки (например, ["numpy", "pandas"]).
+        volumes (Dict[str, str]): Словарь, осуществляющий маппинг директорий, которые будут примонтированы
+            к запущенному Docker-контейнеру.
+            Ключи — пути на хосте, значения — пути внутри контейнера.
+        script_path (str): Путь к Python-скрипту внутри контейнера, который будет исполняться.
+        packages_to_install (Optional[List[str]]): Список Python-пакетов для установки (например, ["numpy", "pandas"]).
+            По умолчанию None.
         use_gpu (bool): Флаг, указывающий, нужно ли подключать GPU. По умолчанию False.
-        keep_container (bool): Флаг, указывающий, нужно ли оставлять контейнер запущенным
-            после выполнения функции. По умолчанию False.
-
-    Returns:
-        None
+        keep_container (bool): Флаг, указывающий, нужно ли оставлять контейнер запущенным после выполнения функции.
+            По умолчанию False.
+        environment (Optional[Dict[str, str]]): Словарь переменных окружения, которые будут переданы в контейнер.
+            Например, {"HUGGING_FACE_TOKEN": "your_token_here"}. По умолчанию None.
 
     Raises:
         Exception: Если произошла ошибка при запуске контейнера или выполнении скрипта.
+
+    Example:
+        volumes = {
+            "/host/path/data": "/container/path/data",
+            "/host/path/scripts": "/container/path/scripts",
+        }
+        environment = {
+            "HUGGING_FACE_TOKEN": "your_token_here",
+            "OTHER_ENV_VAR": "value",
+        }
+        run_container(
+            image_name="python:3.10",
+            volumes=volumes,
+            script_path="/container/path/scripts/run.py",
+            packages_to_install=["numpy", "pandas"],
+            use_gpu=True,
+            keep_container=False,
+            environment=environment,
+        )
     """
     # Создание клиента Docker
     client = docker.from_env()
@@ -139,13 +166,14 @@ def run_container(
     # Запуск контейнера
     container = client.containers.run(
         image_name,
-        command=command,  # Команда для выполнения
-        detach=True,  # Запуск в фоновом режиме
+        command=command,
+        detach=True,
         stdout=True,
         stderr=True,
-        tty=True,  # Включаем псевдотерминал для tqdm
-        volumes=volumes_dict,  # Монтируем папки
-        device_requests=device_requests,  # Подключаем GPU, если use_gpu=True
+        tty=True,
+        volumes=volumes_dict,
+        device_requests=device_requests,
+        environment=environment,  # Передача переменных окружения
     )
 
     # Чтение вывода контейнера в реальном времени
@@ -165,3 +193,35 @@ def run_container(
         print(
             f"Для подключения к контейнеру выполните: docker exec -it {container.id} bash"
         )
+
+
+def load_env_vars(env_file: str = ".env") -> Dict[str, Any]:
+    """Загружает переменные окружения из файла .env и возвращает их в виде словаря.
+
+    Args:
+        env_file (str): Путь к файлу .env. По умолчанию ".env".
+
+    Returns:
+        Dict[str, Any]: Словарь, где ключи — имена переменных окружения, а значения — их значения.
+
+    Example:
+        env_vars = load_env_vars()
+        print(env_vars)
+        # {
+        #     "HUGGING_FACE_TOKEN": "your_token_here",
+        #     "DATABASE_URL": "postgres://user:password@localhost:5432/mydatabase",
+        #     "DEBUG": True
+        # }
+
+    Raises:
+        FileNotFoundError: Если файл .env не найден.
+    """
+    # Загружаем переменные окружения из файла .env
+    load_dotenv(env_file)
+
+    # Преобразуем переменные окружения в словарь
+    env_vars = {}
+    for key, value in os.environ.items():
+        env_vars[key] = value
+
+    return env_vars

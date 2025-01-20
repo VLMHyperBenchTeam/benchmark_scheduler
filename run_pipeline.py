@@ -25,7 +25,7 @@ if __name__ == "__main__":
         vlm_docker_img,
         volumes,
         script_path="/workspace/bench_stages/run_vlm.py",
-        packages_to_install=["wheels/benchmark_scheduler-0.1.0-py3-none-any.whl"],
+        packages_to_install=["wheels/benchmark_run_config-0.1.0-py3-none-any.whl"],
         use_gpu=True,
         environment=environment,
     )

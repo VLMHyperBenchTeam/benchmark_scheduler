@@ -4,7 +4,7 @@ from typing import List
 import numpy as np
 import pandas as pd
 
-from .benchmark_run_config import BenchmarkRunConfig
+from benchmark_run_config.benchmark_run_config import BenchmarkRunConfig
 
 
 class UserConfigReader:

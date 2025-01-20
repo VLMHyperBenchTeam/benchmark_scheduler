@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 import docker
 from dotenv import load_dotenv
 
-from .benchmark_run_config import BenchmarkRunConfig
+from benchmark_run_config.benchmark_run_config import BenchmarkRunConfig
 from .user_config_reader import UserConfigReader
 
 

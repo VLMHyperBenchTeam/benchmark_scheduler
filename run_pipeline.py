@@ -13,9 +13,9 @@ if __name__ == "__main__":
     )
 
     volumes = {
-        "pipeline/data": "/workspace/data",
-        "pipeline/bench_stages": "/workspace/bench_stages",
-        "pipeline/wheels": "/workspace/wheels",
+        "vlmhyperbench/data": "/workspace/data",
+        "vlmhyperbench/bench_stages": "/workspace/bench_stages",
+        "vlmhyperbench/wheels": "/workspace/wheels",
     }
 
     environment = load_env_vars()

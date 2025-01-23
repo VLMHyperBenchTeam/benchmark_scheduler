@@ -23,7 +23,7 @@ if __name__ == "__main__":
         print("Токен Hugging Face не найден.")
 
     with open(filename, "w") as file:
-        for i in tqdm(range(10), desc="Processing", unit="iteration"):
+        for i in tqdm(range(5), desc="Processing", unit="iteration"):
             line = i
             file.write(f"{i}\n")
             print(f"\nResult: {line}")

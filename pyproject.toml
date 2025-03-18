@@ -10,7 +10,7 @@ python = "^3.10"
 docker = "^7.1.0"
 pandas = "^2.2.3"
 python-dotenv = "^1.0.1"
-benchmark-run-config = {git = "https://github.com/VLMHyperBenchTeam/benchmark_run_config.git", rev = "0.1.1"}
+benchmark-run-config = {git = "https://github.com/VLMHyperBenchTeam/benchmark_run_config.git", rev = "0.1.4"}
 
 
 [build-system]

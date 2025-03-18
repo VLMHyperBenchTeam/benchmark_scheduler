@@ -12,8 +12,8 @@ develop = false
 [package.source]
 type = "git"
 url = "https://github.com/VLMHyperBenchTeam/benchmark_run_config.git"
-reference = "0.1.1"
-resolved_reference = "4f38969120fa9ea269efa64ed9e8225dc6aef11f"
+reference = "0.1.4"
+resolved_reference = "022772896ed25a65e38596291466a7390850573c"
 
 [[package]]
 name = "certifi"
@@ -442,4 +442,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "891fc8bb2772e2ca74fa08e91f65634548ce087049194d9954f5671ac2e6bf99"
+content-hash = "04014ef9dac82e6a5a5aaf59a57c0956809d042962892951209e5651f1973625"
